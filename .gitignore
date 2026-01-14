@@ -1,0 +1,13 @@
+# add all the files that are not needed to be committed
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+
+*.sqlite3
+*.db
+*.log
+
+/dropme_env
