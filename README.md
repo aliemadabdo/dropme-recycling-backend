@@ -266,13 +266,14 @@ curl -X GET http://localhost:8080/api/users/me/stats/ \
 
 #### Points System
 ```python
-# Points are calculated as: 1 point per gram of recycled material
-POINTS_PER_GRAM = 1
+# Points are calculated as: material points X weight of the material in grams
+# For each transaction, use the material points from RECYCLING_RULES:
+#   points_earned = RECYCLING_RULES[material_type]['points'] * weight_grams
 
 # Example calculations:
-# 250g plastic bottle = 250 points
-# 15g aluminum can = 15 points
-# 500g glass bottle = 500 points
+# 250g plastic bottle (10 points per gram) = 2,500 points
+# 15g aluminum can (12 points per gram) = 180 points
+# 500g glass bottle (15 points per gram) = 7,500 points
 ```
 
 #### Rate Limiting
