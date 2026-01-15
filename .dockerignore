@@ -1,0 +1,55 @@
+# Python
+dropme_venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment
+# Ignore local .env file (will be created from prod_env.txt in container)
+.env
+.env.local
+.env.*.local
+# But allow prod_env.txt to be copied (it will become .env in container)
+!prod_env.txt
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+README.md
+*.md
+
+# Docker
+# Allow docker-compose.yml to be copied (needed for reference)
+.dockerignore
+
+# Logs
+*.log
+*.sqlite3
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Misc
+api_examples.http

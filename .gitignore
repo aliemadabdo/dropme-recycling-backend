@@ -11,4 +11,7 @@
 *.log
 
 /dropme_env
+# Ignore local .env file (for local development)
 .env
+# But allow prod_env.txt to be version controlled (it will be copied to .env in container)
+!prod_env.txt

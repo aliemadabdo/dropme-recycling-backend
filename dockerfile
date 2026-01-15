@@ -1,10 +1,10 @@
 FROM python:3.11-slim
 
-# Set environment variables
+# Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Set work directory
+# Set working directory
 WORKDIR /app
 
 # Install system dependencies
@@ -12,20 +12,38 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt /app/
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/staticfiles && \
+    chown -R appuser:appuser /app
+
+# Install Python dependencies first (better caching)
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
-COPY . /app/
+# Copy project files
+COPY --chown=appuser:appuser . .
 
-# Create directory for static files
-RUN mkdir -p /app/staticfiles
+# Copy production environment file to .env if it exists
+# This allows prod_env.txt to be version controlled while .env is ignored
+RUN if [ -f prod_env.txt ]; then \
+        cp prod_env.txt .env && \
+        chown appuser:appuser .env; \
+    fi
 
-# Expose port
-EXPOSE 8000
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Run migrations and start server
-CMD python manage.py migrate && \
-    python manage.py collectstatic --noinput && \
-    gunicorn dropme.wsgi:application --bind 0.0.0.0:8000 --workers 3
+# Switch to non-root user
+USER appuser
+
+# Expose app port
+EXPOSE 8080
+
+# Health check (can be overridden in docker-compose)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/schema/').read()" || exit 1
+
+# Start application
+ENTRYPOINT ["/entrypoint.sh"]
