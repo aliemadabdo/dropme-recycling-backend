@@ -90,7 +90,6 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'EXCEPTION_HANDLER': 'recycling.utils.custom_exception_handler',
 }
 
 SPECTACULAR_SETTINGS = {
@@ -104,9 +103,9 @@ SPECTACULAR_SETTINGS = {
 
 # Business Rules Configuration
 RECYCLING_RULES = {
-    'PLASTIC_BOTTLE': {'points': 10, 'material_type': 'plastic'},
-    'GLASS_BOTTLE': {'points': 15, 'material_type': 'glass'},
-    'ALUMINUM_CAN': {'points': 12, 'material_type': 'aluminum'},
+    'PLASTIC': {'points': 10, 'material_type': 'plastic'},
+    'GLASS': {'points': 15, 'material_type': 'glass'},
+    'ALUMINUM': {'points': 12, 'material_type': 'aluminum'},
     'PAPER': {'points': 5, 'material_type': 'paper'},
 }
 
