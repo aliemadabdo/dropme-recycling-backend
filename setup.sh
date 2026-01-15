@@ -33,25 +33,12 @@ else
     echo "ℹ️  .env file already exists"
 fi
 
+# Stop and remove any existing containers, networks, and volumes to start fresh
+docker-compose down
+
 # Build and start services
 echo "🏗️  Building and starting Docker services..."
 docker-compose up -d --build
-
-# Wait for database to be ready
-echo "⏳ Waiting for database to be ready..."
-sleep 10
-
-# Run database migrations
-echo "🗄️  Running database migrations..."
-docker-compose exec -T web python manage.py migrate
-
-# Create superuser (optional, with default credentials)
-echo "👤 Creating default superuser (admin/admin123)..."
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123') if not User.objects.filter(username='admin').exists() else print('Superuser already exists')" | docker-compose exec -T web python manage.py shell
-
-# Collect static files (for production)
-echo "📦 Collecting static files..."
-docker-compose exec -T web python manage.py collectstatic --noinput
 
 echo ""
 echo "🎉 Setup completed successfully!"
@@ -60,11 +47,6 @@ echo ""
 echo "🌐 Access Points:"
 echo "   API:        http://localhost:8080"
 echo "   Swagger:    http://localhost:8080/api/swagger/"
-echo "   Admin:      http://localhost:8080/admin/"
-echo ""
-echo "👤 Default Admin Credentials:"
-echo "   Username: admin"
-echo "   Password: admin123"
 echo ""
 echo "📚 Useful Commands:"
 echo "   View logs:    docker-compose logs -f"
