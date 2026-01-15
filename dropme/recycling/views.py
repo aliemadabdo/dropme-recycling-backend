@@ -33,6 +33,7 @@ class CreateRecyclingTransactionView(APIView):
                 user=request.user,
                 material_type=serializer.validated_data['material_type'],
                 item_code=serializer.validated_data['item_code'],
+                weight_grams=serializer.validated_data['weight_grams'],
                 machine_id=serializer.validated_data.get('machine_id')
             )
             

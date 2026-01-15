@@ -144,6 +144,9 @@ SIMPLE_JWT = {
 ###################################################################################
 
 # Business Rules Configuration
+# Points are now calculated as: 1 point per gram of recycled material
+POINTS_PER_GRAM = 1
+
 RECYCLING_RULES = {
     'PLASTIC': {'points': 10, 'material_type': 'plastic'},
     'GLASS': {'points': 15, 'material_type': 'glass'},

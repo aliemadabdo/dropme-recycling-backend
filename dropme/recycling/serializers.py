@@ -8,7 +8,7 @@ class RecyclingTransactionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = RecyclingTransaction
-        fields = ['id', 'user', 'material_type', 'item_code', 'machine_id', 'points_earned', 'status', 'created_at']
+        fields = ['id', 'user', 'material_type', 'item_code', 'weight_grams', 'machine_id', 'points_earned', 'status', 'created_at']
         read_only_fields = ['id', 'points_earned', 'status', 'created_at']
 
     def validate_item_code(self, value):
@@ -38,7 +38,7 @@ class RecyclingTransactionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecyclingTransaction
         fields = [
-            'id', 'user', 'user_username', 'material_type', 'item_code', 
+            'id', 'user', 'user_username', 'material_type', 'item_code', 'weight_grams',
             'points_earned', 'status', 'machine_id', 'created_at', 'updated_at',
             'error_message'
         ]

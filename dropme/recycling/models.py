@@ -26,6 +26,7 @@ class RecyclingTransaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     material_type = models.CharField(max_length=20, choices=MATERIAL_CHOICES)
     item_code = models.CharField(max_length=100, db_index=True, help_text="Barcode or QR code from item")
+    weight_grams = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Weight in grams from sensor")
     points_earned = models.IntegerField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     machine_id = models.CharField(max_length=50, null=True, blank=True, help_text="ID of the recycling machine")

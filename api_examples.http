@@ -39,6 +39,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
 {
   "material_type": "plastic",
   "item_code": "BOTTLE_12345",
+  "weight_grams": 250.5,
   "machine_id": "MACHINE_001"
 }
 
@@ -50,6 +51,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
 {
   "material_type": "aluminum",
   "item_code": "CAN_67890",
+  "weight_grams": 15.2,
   "machine_id": "MACHINE_001"
 }
 
@@ -61,6 +63,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
 {
   "material_type": "plastic",
   "item_code": "BOTTLE_12345",
+  "weight_grams": 250.5,
   "machine_id": "MACHINE_001"
 }
 

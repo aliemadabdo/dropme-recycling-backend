@@ -12,15 +12,17 @@ class RecyclingService:
     """Core business logic for recycling transactions"""
 
     @staticmethod
-    def calculate_points(material_type: str) -> int:
-        """Calculate points based on material type"""
-        rules = settings.RECYCLING_RULES.get(material_type.upper())
-        if not rules:
-            raise ValueError(f"Unknown material type: {material_type}")
-        return rules['points']
-
+    def calculate_points(material_type: str, weight_grams: float) -> int:
+        """Calculate points based on material type and weight"""
+        if weight_grams <= 0:
+            raise ValueError("Weight must be greater than 0")
+        
+        # Get points per gram from settings
+        material_points = settings.RECYCLING_RULES.get(material_type, {}).get('points', 1)
+        return int(weight_grams * material_points)
+    
     @staticmethod
-    def check_duplicate_transaction(user: User, item_code: str) -> bool:
+    def check_duplicate_transaction(user, item_code: str) -> bool:
         """Check if item has already been recycled by this user"""
         return RecyclingTransaction.objects.filter(
             user=user,
@@ -28,7 +30,7 @@ class RecyclingService:
         ).exists()
 
     @staticmethod
-    def check_rate_limit(user: User) -> dict:
+    def check_rate_limit(user) -> dict:
         """Check if user has exceeded rate limits"""
         now = timezone.now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -65,8 +67,8 @@ class RecyclingService:
         }
 
     @transaction.atomic
-    def create_transaction(self, user: User, material_type: str, 
-                          item_code: str, machine_id: str = None) -> RecyclingTransaction:
+    def create_transaction(self, user, material_type: str, 
+                          item_code: str, weight_grams: float, machine_id: str = None) -> RecyclingTransaction:
         """
         Create a recycling transaction with full validation and points update
         Uses database transaction to ensure data consistency
@@ -79,6 +81,7 @@ class RecyclingService:
                 user=user,
                 material_type=material_type,
                 item_code=item_code,
+                weight_grams=weight_grams,
                 machine_id=machine_id,
                 points_earned=0,
                 status='duplicate',
@@ -92,14 +95,15 @@ class RecyclingService:
         # Check rate limits
         rate_limit_info = self.check_rate_limit(user)
         
-        # Calculate points
-        points = self.calculate_points(material_type)
+        # Calculate points based on weight
+        points = self.calculate_points(material_type, weight_grams)
         
         # Create transaction
         txn = RecyclingTransaction.objects.create(
             user=user,
             material_type=material_type,
             item_code=item_code,
+            weight_grams=weight_grams,
             machine_id=machine_id,
             points_earned=points,
             status='completed'
@@ -116,14 +120,14 @@ class RecyclingService:
             transaction_type='earn',
             points_change=points,
             balance_after=user.total_points,
-            description=f"Recycled {material_type} item"
+            description=f"Recycled {weight_grams}g of {material_type}"
         )
         
         return txn
 
 
     @staticmethod
-    def get_user_stats(user: User) -> dict:
+    def get_user_stats(user) -> dict:
         """Get comprehensive user statistics"""
         now = timezone.now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
