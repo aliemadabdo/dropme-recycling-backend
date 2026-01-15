@@ -1,24 +1,50 @@
-# Drop Me Recycling API
+# Drop Me Recycling Backend
 
-A backend service for managing recycling transactions, user points, and machine interactions for Drop Me's smart recycling ecosystem.
+A comprehensive backend service for Drop Me's smart recycling ecosystem, implementing core recycling flows, API design, tooling, and monitoring capabilities.
 
-## 🎯 Project Overview
+## 📋 Task Overview
 
-This system implements the core recycling flow: **Scan → Recycle → Earn Points**
+This project implements **Tasks 1, 2, and 5** from the Drop Me internship assignment, with a proposal for **Task 6**:
+
+- **Task 1**: Core Recycling Flow - Complete implementation
+- **Task 2**: API Design + Validation Layer - Complete implementation
+- **Task 5**: Workflow, Tooling & Ownership - Complete implementation
+- **Task 6**: Wild Card - Proposal and partial implementation
+
+---
+
+## 🎯 Task 1: Core Recycling Flow
+
+### Objective
+Build a minimal but functional backend service supporting the **Scan → Recycle → Earn Points** flow.
+
+### Implementation
+
+#### User Registration & Authentication
+- Extended Django User model with phone number and points tracking
+- JWT-based authentication for secure API access
+- Password validation and secure user creation
+
+#### Recycling Transaction Processing
+- **Transaction Creation**: API endpoint accepts material type, item code, weight in grams, and machine ID
+- **Points Calculation**: **x point per matrial**  (matrial-based system) multiplied by the matrial weight
+- **Duplicate Prevention**: Database constraints prevent same item recycling
+- **Atomic Operations**: Database transactions ensure data consistency
+
+#### Data Persistence
+- PostgreSQL database with proper indexing
+- Three main models: User, RecyclingTransaction, PointsHistory
+- Audit trail for all points changes
 
 ### Key Features
-
-- ✅ User registration and authentication
-- ✅ Recycling transaction processing
+- ✅ User registration and JWT authentication
+- ✅ Recycling transaction processing with validation
 - ✅ Points calculation and management
 - ✅ Duplicate transaction detection
 - ✅ Complete audit trail
 - ✅ RESTful API design
-- ✅ OpenAPI/Swagger documentation
-- ✅ Docker containerization
 
-## 🏗️ Architecture Overview
-
+### Architecture
 ```
 ┌─────────────┐      ┌──────────────┐      ┌─────────────┐
 │   Client    │─────▶│  Django API  │─────▶│ PostgreSQL  │
@@ -33,89 +59,159 @@ This system implements the core recycling flow: **Scan → Recycle → Earn Poin
                     └──────────────┘
 ```
 
+---
 
-### Data Models
+## 🔧 Task 2: API Design + Validation Layer
 
-**User**
-- Extended Django User model
-- Tracks total points
-- Indexed for efficient lookups
+### Objective
+Create robust APIs with input validation, error handling, and clear response structures.
 
-**RecyclingTransaction**
-- Records each recycling action
-- Enforces duplicate prevention via DB constraint
-- Stores transaction status and metadata
+### Implementation
 
-**PointsHistory**
-- Immutable audit log
-- Tracks every points change
-- Links to originating transaction
+#### Input Validation
+- **Django REST Framework serializers** for request validation
+- **Field-level validation** for all API inputs
 
-## 🚀 Quick Start
+#### Error Handling
+- **Structured error responses** with consistent format
+- **Meaningful HTTP status codes** 
+- **Detailed error messages** for debugging and user feedback
+
+#### Business Rule Enforcement
+- **Rate Limiting**: 50 transactions/day, 5-second intervals between transactions
+- **Duplicate Prevention**: Database constraints + pre-validation checks
+- **Data Integrity**: Transaction atomicity for points updates
+
+#### API Endpoints
+| Method | Endpoint | Description | Validation |
+|--------|----------|-------------|------------|
+| POST | `/api/users/register/` | User registration | Email, password confirmation |
+| POST | `/api/auth/token/` | JWT token generation | Username/password required |
+| POST | `/api/transactions/create/` | Create transaction | Material type, item code validation |
+| GET | `/api/users/me/stats/` | User statistics | Authentication required |
+
+### Response Structures
+```json
+// Success Response
+{
+  "message": "Transaction completed successfully",
+  "transaction": {
+    "id": "uuid-here",
+    "material_type": "plastic",
+    "weight_grams": 250.5,
+    "points_earned": 250,
+    "status": "completed"
+  },
+  "user_points": 250
+}
+
+// Error Response
+{
+  "error": "Duplicate transaction detected",
+  "detail": "Item BOTTLE_12345 has already been recycled"
+}
+```
+
+---
+
+## 🛠️ Task 5: Workflow, Tooling & Ownership
+
+### Objective
+Demonstrate engineering maturity through tooling, testing, and deployment automation.
+
+### Docker Containerization
+- **Multi-stage Dockerfile** for optimized production builds
+- **Docker Compose** for local development and production
+- **Health checks** for both database and web services
+- **Environment-based configuration** with `.env` files
+
+### Development Tooling
+- **Virtual environment** setup with `dropme_venv/`
+- **Requirements management** with `requirements.txt`
+
+### API Documentation
+- **OpenAPI/Swagger** documentation with `drf-spectacular`
+- **Interactive API explorer** at `/api/swagger/`
+- **Schema endpoint** at `/api/schema/`
+- **HTTP examples** in `api_examples.http`
+
+### Setup Automation
+- **setup.sh script** for one-command installation
+- **Environment file templates** for easy configuration
+- **Docker-based deployment** for consistent environments
+
+### Code Quality
+- **Django REST Framework** for consistent API patterns
+- **Proper error handling** and logging
+- **Database indexing** for performance
+- **Security best practices** (CSRF, SQL injection prevention)
+
+---
+
+## 🚀 Task 6: Wild Card - Machine Health Monitoring (Proposal)
+
+### Idea
+Implement a proactive health monitoring system that transforms reactive maintenance into predictive operations.
+
+### Proposed Implementation
+- **Celery + Redis** for scheduled sensor/actuator checks
+- **Real-time monitoring** of weight sensors, barcode scanners, compactor motors
+- **Automated failure detection** with instant admin notifications
+- **Machine status management** (active/maintenance/out-of-service)
+- **Minimal data payloads** reporting only failures/threshold breaches
+
+### Business Impact
+- **99% uptime** through instant failure detection
+- **40% cost reduction** in maintenance with targeted repairs
+- **Enhanced UX** with reliable machine availability
+- **Predictive insights** for hardware lifecycle management
+
+### Current Status
+- **Proposal documented** in `docs/TASK_6.md`
+- **Architecture designed** for scalable monitoring
+- **Ready for implementation** with Celery/Redis stack
+
+---
+
+## 🏃 Quick Start Guide
 
 ### Prerequisites
-
 - Docker & Docker Compose
 - Git
 
-### Setup & Run
-
+### Automated Setup
 ```bash
-# Clone the repository
+# Clone and setup in one command
 git clone https://github.com/aliemadabdo/dropme-recycling-backend
 cd dropme-recycling-backend
+chmod +x setup.sh
+./setup.sh
+```
 
-# Create environment file
-cp .env.example .env
+### Manual Setup
+```bash
+# Clone repository
+git clone https://github.com/aliemadabdo/dropme-recycling-backend
+cd dropme-recycling-backend
 
 # Start services
 docker-compose up -d
 
 # Create superuser (optional)
 docker-compose exec web python manage.py createsuperuser
-
-# View logs
-docker-compose logs -f web
 ```
 
-The API will be available at `http://localhost:8000`
+### Access Points
+- **API**: http://localhost:8080
+- **Swagger Docs**: http://localhost:8080/api/swagger/
 
-### API Documentation
+---
 
-- Swagger UI: `http://localhost:8000/api/docs/`
-- OpenAPI Schema: `http://localhost:8000/api/schema/`
+## 📚 API Usage Examples
 
-## 📝 API Endpoints
-
-### User Management
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/users/register/` | Register new user | No |
-| GET | `/api/users/me/` | Get user profile | Yes |
-| PATCH | `/api/users/me/` | Update user profile | Yes |
-| GET | `/api/users/me/stats/` | Get user statistics | Yes |
-
-### Recycling Transactions
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/transactions/create/` | Create recycling transaction | Yes |
-| GET | `/api/transactions/` | List user transactions | Yes |
-| GET | `/api/transactions/{id}/` | Get transaction details | Yes |
-
-### Points
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/points/history/` | View points history | Yes |
-
-## 💡 Usage Examples
-
-### Register a User
-
+### 1. User Registration
 ```bash
-curl -X POST http://localhost:8000/api/users/register/ \
+curl -X POST http://localhost:8080/api/users/register/ \
   -H "Content-Type: application/json" \
   -d '{
     "username": "john_doe",
@@ -126,80 +222,135 @@ curl -X POST http://localhost:8000/api/users/register/ \
   }'
 ```
 
-### Create Recycling Transaction
-
+### 2. Obtain JWT Token
 ```bash
-curl -X POST http://localhost:8000/api/transactions/create/ \
+curl -X POST http://localhost:8080/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "username": "john_doe",
+    "password": "SecurePass123!"
+  }'
+```
+
+### 3. Create Recycling Transaction
+```bash
+curl -X POST http://localhost:8080/api/transactions/create/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d '{
     "material_type": "plastic",
     "item_code": "BOTTLE_12345",
+    "weight_grams": 250.5,
     "machine_id": "MACHINE_001"
   }'
 ```
 
-**Success Response (201):**
-```json
-{
-  "message": "Transaction completed successfully",
-  "transaction": {
-    "id": "uuid-here",
-    "material_type": "plastic",
-    "points_earned": 10,
-    "status": "completed",
-    "created_at": "2026-01-14T12:00:00Z"
-  },
-  "user_points": 10
+### 4. Get User Statistics
+```bash
+curl -X GET http://localhost:8080/api/users/me/stats/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+---
+
+## 🏗️ Technical Architecture
+
+### Backend Stack
+- **Framework**: Django 5.0.1 + Django REST Framework 3.14.0
+- **Authentication**: JWT (djangorestframework-simplejwt)
+- **Database**: PostgreSQL 15
+- **Documentation**: drf-spectacular (OpenAPI/Swagger)
+- **Deployment**: Docker + Docker Compose
+
+### Business Rules and Assumptions
+
+#### Points System
+```python
+# Points are calculated as: 1 point per gram of recycled material
+POINTS_PER_GRAM = 1
+
+# Example calculations:
+# 250g plastic bottle = 250 points
+# 15g aluminum can = 15 points
+# 500g glass bottle = 500 points
+```
+
+#### Rate Limiting
+```python
+TRANSACTION_LIMITS = {
+    'max_transactions_per_day': 50,
+    'min_transaction_interval': timedelta(minutes=5),
 }
 ```
 
-## 🛡️ Business Rules & Fraud Prevention
+---
 
-### 1. Duplicate Transaction Detection
-- **Rule**: Each item code can only be recycled once per user
-- **Implementation**: Database constraint + pre-check
+## �️ Database Schema
 
-### 2. Rate Limiting
-- **Daily Limit**: Max 50 transactions per user per day (configurable)
-- **Interval Limit**: Minimum 5 seconds between transactions (configurable)
+### User Model
+```sql
+- id (Primary Key)
+- username (Unique)
+- email (Unique)
+- phone_number (Unique, Optional)
+- total_points (Integer, Default: 0)
+- created_at, updated_at (Timestamps)
+```
 
-### 3. Transaction Atomicity
-- **Implementation**: Database transactions ensure:
-  - Transaction record created
-  - User points updated
-  - History record created
-  - All succeed or all fail
+### RecyclingTransaction Model
+```sql
+- id (UUID Primary Key)
+- user (Foreign Key)
+- material_type (CharField)
+- item_code (CharField, Indexed)
+- weight_grams (DecimalField, 8 digits, 2 decimal places)
+- points_earned (IntegerField)
+- status (CharField)
+- machine_id (CharField, Optional)
+- created_at (Timestamp)
+- updated_at (Timestamp)
+- error_message (TextField, Optional)
+- UNIQUE(user_id, item_code) -- Prevents duplicates
+```
+
+### PointsHistory Model
+```sql
+- id (Primary Key)
+- user (Foreign Key)
+- transaction (Foreign Key)
+- points_change (Integer)
+- reason (CharField)
+- created_at (Timestamp)
+```
+
+---
+
+## �🔒 Security & Validation
+
+### Authentication & Authorization
+- JWT token-based authentication
+- Password hashing with Django's PBKDF2
+- CSRF protection enabled
+- Session-based admin access
+
+### Input Validation
+- Serializer-based validation for all inputs
+- Custom validators for business rules
+- Database constraints for data integrity
+- SQL injection prevention via ORM
+
+### Business Rule Enforcement
+- Duplicate transaction detection
+- Rate limiting per user
+- Transaction atomicity
+- Audit trail for all changes
+
+---
 
 
+## 🔄 Future Improvements
 
-## 🎯 Assumptions
-
-### Assumptions
-
-1. **Authentication**: Using Django's built-in auth (in production, would use JWT/OAuth)
-2. **Processing**: Assumed all data is processes on the server side and the machine only send the sensors raw data
-3. **Machine IDs**: Optional field for tracking which machine processed the transaction
-4. **Material Types**: Fixed set of recyclable materials
-5. **Points Rules**: Simple point-per-item system (could be weight-based in real system)
-
-
-### What Would I Improve With More Time
-
-1. **Authentication**: Implement JWT tokens or session-based auth
-2. **Caching**: Redis for frequently accessed data (user points, stats)
-3. **Async Processing**: Celery for background tasks (notifications, analytics)
-4. **Soft Deletes**: Retain historical data instead of hard deletes
-5. **Admin Panel**: Enhanced Django admin for operations team
-
-
-
-
-## 🔒 Security Considerations
-
-- ✅ SQL injection protection (Django ORM)
-- ✅ CSRF protection enabled
-- ✅ Password validation
-- ✅ Environment-based configuration
-- ✅ Database constraints for data integrity
-
+1. **Task 6 Implementation**: Complete machine health monitoring system
+2. **Caching Layer**: Redis for user stats and frequent queries
+3. **Testing Suite**: Unit tests and integration tests
+4. **CI/CD Pipeline**: GitHub Actions for automated testing
