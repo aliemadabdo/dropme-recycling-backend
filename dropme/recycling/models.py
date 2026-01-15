@@ -58,8 +58,7 @@ class PointsHistory(models.Model):
     
     TRANSACTION_TYPES = [
         ('earn', 'Earned'),
-        ('redeem', 'Redeemed'),
-        ('adjust', 'Adjustment'),
+        ('payout', 'Payout'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
