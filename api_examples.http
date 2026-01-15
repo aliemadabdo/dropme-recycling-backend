@@ -1,0 +1,81 @@
+### Register New User
+POST http://localhost:8080/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "phone_number": "+1234567890",
+  "password": "SecurePass123!",
+  "password2": "SecurePass123!"
+}
+
+### Obtain JWT Token (Login)
+POST http://localhost:8080/api/auth/token/
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "SecurePass123!"
+}
+
+### Refresh JWT Token
+POST http://localhost:8080/api/auth/token/refresh/
+Content-Type: application/json
+
+{
+  "refresh": "YOUR_REFRESH_TOKEN_HERE"
+}
+
+### Get User Profile (requires authentication)
+GET http://localhost:8080/api/users/me/
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### Create Recycling Transaction
+POST http://localhost:8080/api/transactions/create/
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "material_type": "plastic",
+  "item_code": "BOTTLE_12345",
+  "machine_id": "MACHINE_001"
+}
+
+### Create Another Transaction (Different Material)
+POST http://localhost:8080/api/transactions/create/
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "material_type": "aluminum",
+  "item_code": "CAN_67890",
+  "machine_id": "MACHINE_001"
+}
+
+### Try Duplicate Transaction (Should Fail)
+POST http://localhost:8080/api/transactions/create/
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+{
+  "material_type": "plastic",
+  "item_code": "BOTTLE_12345",
+  "machine_id": "MACHINE_001"
+}
+
+### List All User Transactions
+GET http://localhost:8080/api/transactions/
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### Get User Statistics
+GET http://localhost:8080/api/users/me/stats/
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### Get Points History
+GET http://localhost:8080/api/points/history/
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### Get Specific Transaction Details
+GET http://localhost:8080/api/transactions/TRANSACTION_ID_HERE/
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
