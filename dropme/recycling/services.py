@@ -102,7 +102,6 @@ class RecyclingService:
         logger.debug("Rate limit result for user %s: %s", getattr(user, 'id', None), result)
         return result
 
-    @transaction.atomic
     def create_transaction(self, user, material_type: str,
                           item_code: str, weight_grams: float, machine_id: str = None) -> RecyclingTransaction:
         """
@@ -133,59 +132,57 @@ class RecyclingService:
             logger.info(
                 "Created failed duplicate transaction record: id=%s", str(failed_txn.id)
             )
-            raise ValueError(
-                "This item has already been recycled",
-                transaction_id=str(failed_txn.id)
-            )
+            raise ValueError("This item has already been recycled")
         
-        # Check rate limits
-        rate_limit_info = self.check_rate_limit(user)
-        logger.debug(
-            "Rate limit info for user %s: %s",
-            getattr(user, 'id', None), rate_limit_info
-        )
+        with transaction.atomic():
+            # Check rate limits
+            rate_limit_info = self.check_rate_limit(user)
+            logger.debug(
+                "Rate limit info for user %s: %s",
+                getattr(user, 'id', None), rate_limit_info
+            )
 
-        # Calculate points based on weight
-        points = self.calculate_points(material_type, weight_grams)
-        logger.info(
-            "Points to be awarded: %d for user %s", points, getattr(user, 'id', None)
-        )
+            # Calculate points based on weight
+            points = self.calculate_points(material_type, weight_grams)
+            logger.info(
+                "Points to be awarded: %d for user %s", points, getattr(user, 'id', None)
+            )
 
-        # Create transaction
-        txn = RecyclingTransaction.objects.create(
-            user=user,
-            material_type=material_type,
-            item_code=item_code,
-            weight_grams=weight_grams,
-            machine_id=machine_id,
-            points_earned=points,
-            status='completed'
-        )
-        logger.info(
-            "Created RecyclingTransaction: id=%s for user=%s", str(txn.id), getattr(user, 'id', None)
-        )
+            # Create transaction
+            txn = RecyclingTransaction.objects.create(
+                user=user,
+                material_type=material_type,
+                item_code=item_code,
+                weight_grams=weight_grams,
+                machine_id=machine_id,
+                points_earned=points,
+                status='completed'
+            )
+            logger.info(
+                "Created RecyclingTransaction: id=%s for user=%s", str(txn.id), getattr(user, 'id', None)
+            )
 
-        # Update user points
-        user.total_points += points
-        user.save(update_fields=['total_points', 'updated_at'])
-        logger.info(
-            "Updated user %s total_points to %s", getattr(user, 'id', None), user.total_points
-        )
+            # Update user points
+            user.total_points += points
+            user.save(update_fields=['total_points', 'updated_at'])
+            logger.info(
+                "Updated user %s total_points to %s", getattr(user, 'id', None), user.total_points
+            )
 
-        # Create points history record
-        PointsHistory.objects.create(
-            user=user,
-            transaction=txn,
-            transaction_type='earn',
-            points_change=points,
-            balance_after=user.total_points,
-            description=f"Recycled {weight_grams}g of {material_type}"
-        )
-        logger.info(
-            "Created PointsHistory record for user=%s, transaction=%s", getattr(user, 'id', None), str(txn.id)
-        )
+            # Create points history record
+            PointsHistory.objects.create(
+                user=user,
+                transaction=txn,
+                transaction_type='earn',
+                points_change=points,
+                balance_after=user.total_points,
+                description=f"Recycled {weight_grams}g of {material_type}"
+            )
+            logger.info(
+                "Created PointsHistory record for user=%s, transaction=%s", getattr(user, 'id', None), str(txn.id)
+            )
 
-        return txn
+            return txn
 
     @staticmethod
     def get_user_stats(user) -> dict:
@@ -228,4 +225,3 @@ class RecyclingService:
         }
         logger.debug("Stats for user %s: %s", getattr(user, 'id', None), stats)
         return stats
-
