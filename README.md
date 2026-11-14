@@ -1,6 +1,23 @@
 # Drop Me Recycling Backend
 
-A comprehensive backend service for Drop Me's smart recycling ecosystem, implementing core recycling flows, API design, tooling, and monitoring capabilities.
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-REST_Framework-092E20?logo=django&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+
+REST API behind a smart recycling machine: a user scans an item, recycles it, and earns points.
+The interesting part is the **points ledger**: points behave like money, so every change is atomic,
+audited, and protected against double-crediting and abuse.
+
+**Highlights**
+
+- **Ledger-style points**: every balance change writes a `PointsHistory` row inside the same `transaction.atomic()` block as the recycling transaction, so the balance can always be rebuilt from history.
+- **Idempotency**: a `UniqueConstraint(user, item_code)` at the database level stops the same item from being credited twice, even under concurrent requests.
+- **Abuse protection**: configurable daily transaction cap and a minimum interval between transactions.
+- **Validation layer**: DRF serializers validate material type, weight and machine ID, with consistent error responses.
+- **Production setup**: Docker Compose (Django + PostgreSQL with health checks), JWT auth (SimpleJWT), OpenAPI/Swagger docs (drf-spectacular), one-command `setup.sh`.
+
+> Built as a backend engineering assignment for Drop Me (Tasks 1, 2 and 5, plus a Task 6 proposal).
 
 ## 📋 Task Overview
 
@@ -27,7 +44,7 @@ Build a minimal but functional backend service supporting the **Scan → Recycle
 
 #### Recycling Transaction Processing
 - **Transaction Creation**: API endpoint accepts material type, item code, weight in grams, and machine ID
-- **Points Calculation**: **x point per matrial**  (matrial-based system) multiplied by the matrial weight
+- **Points Calculation**: points per gram for each material type, multiplied by the item weight
 - **Duplicate Prevention**: Database constraints prevent same item recycling
 - **Atomic Operations**: Database transactions ensure data consistency
 
